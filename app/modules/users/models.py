@@ -1,13 +1,34 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from app.db.database import Base
+from sqlalchemy import String, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base, TimestampMixin
 
 
-class User(Base):
+class User(Base, TimestampMixin):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    full_name = Column(String(255), nullable=False)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=True)
-    role = Column(String(50), default="user")
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    role: Mapped[str] = mapped_column(String(50), default="user", index=True)
+
+    # =========================
+    # Relationships
+    # =========================
+
+    pharmacies = relationship("Pharmacy", back_populates="owner")
+    orders = relationship("Order", back_populates="user")
+    cart = relationship("Cart", back_populates="user", uselist=False)
+    tracking_orders = relationship("Tracking", back_populates="rider")

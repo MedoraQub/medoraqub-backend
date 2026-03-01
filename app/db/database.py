@@ -1,18 +1,20 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:root123@localhost:3306/medoraqub"
+from app.core.config import DATABASE_URL
+from app.db.base import Base
 
-engine = create_engine(DATABASE_URL)
+# Create Engine
+engine = create_engine(DATABASE_URL, echo=False)
 
+# Create Session
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-Base = declarative_base()
-
+# Dependency
 def get_db():
     db = SessionLocal()
     try:

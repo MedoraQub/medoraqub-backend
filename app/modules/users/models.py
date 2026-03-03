@@ -31,4 +31,4 @@ class User(Base, TimestampMixin):
     pharmacies = relationship("Pharmacy", back_populates="owner")
     orders = relationship("Order", back_populates="user")
     cart = relationship("Cart", back_populates="user", uselist=False)
-    tracking_orders = relationship("Tracking", back_populates="rider")
+    

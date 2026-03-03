@@ -1,27 +1,47 @@
 from fastapi import FastAPI
-from app.db.database import engine, Base
-from app.db.base import *  # IMPORTANT: ensures all models are registered
+from app.db.database import engine
+from app.db.base import Base
 
-# Create FastAPI app FIRST
-app = FastAPI(title="MedoraQub API")
+# Register ALL models before creating tables
+from app.db import models
 
-# Create database tables (only for development phase)
+# =========================
+# Create FastAPI App
+# =========================
+
+app = FastAPI(
+    title="MedoraQub API",
+    version="1.0.0"
+)
+
+# =========================
+# Create Tables (Development Phase Only)
+# =========================
+
 Base.metadata.create_all(bind=engine)
 
-# Import routers AFTER app is created
+# =========================
+# Import Routers (Only Existing Ones)
+# =========================
+
 from app.modules.auth.router import router as auth_router
 from app.modules.users.routes import router as user_router
 
-# Include routers
+# =========================
+# Include Routers
+# =========================
+
 app.include_router(auth_router)
 app.include_router(user_router)
 
+# =========================
+# Health & Root Endpoints
+# =========================
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 def root():
     return {"message": "MedoraQub Backend Running Successfully"}
 
-
-@app.get("/test-db")
+@app.get("/test-db", tags=["Health"])
 def test_db():
     return {"database": "Connected successfully"}

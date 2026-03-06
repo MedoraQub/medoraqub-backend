@@ -29,6 +29,14 @@ class User(Base, TimestampMixin):
     # =========================
 
     pharmacies = relationship("Pharmacy", back_populates="owner")
-    orders = relationship("Order", back_populates="user")
+    orders = relationship(
+        "Order",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
     cart = relationship("Cart", back_populates="user", uselist=False)
-    
+    addresses = relationship(
+        "Address",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )

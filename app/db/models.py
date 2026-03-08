@@ -8,3 +8,4 @@ from app.modules.cart.models import *
 from app.modules.orders.models import *
 from app.modules.orderItem.models import *
 from app.modules.address.models import *
+from app.modules.cart.models import *

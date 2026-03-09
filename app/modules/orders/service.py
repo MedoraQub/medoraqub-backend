@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.modules.cart.models import Cart
 from app.modules.orders.models import Order, OrderItem
 from app.modules.inventory.models import Inventory
+from app.modules.medicines.models import Medicine
 
 
 def create_order(db: Session, user_id: int):
@@ -19,12 +20,13 @@ def create_order(db: Session, user_id: int):
     order = Order(
         user_id=user_id,
         total_price=0
+        status = "pending"
     )
 
     db.add(order)
-    db.flush()  # get order.id before commit
+    db.flush()  # get order.id
 
-    # 3️⃣ Process each cart item
+    # 3️⃣ Process cart items
     for item in cart.items:
 
         inventory = db.query(Inventory).filter(
@@ -34,29 +36,33 @@ def create_order(db: Session, user_id: int):
         if not inventory:
             raise Exception("Medicine not available")
 
-        if inventory.quantity < item.quantity:
+        if inventory.stock_quantity < item.quantity:
             raise Exception("Insufficient stock")
 
-        # reduce inventory
-        inventory.quantity -= item.quantity
+        # get medicine for price
+        medicine = db.query(Medicine).filter(
+            Medicine.id == item.medicine_id
+        ).first()
 
-        # calculate price
-        item_price = inventory.price * item.quantity
+        # reduce stock
+        inventory.stock_quantity -= item.quantity
+
+        item_price = medicine.price * item.quantity
         total_price += item_price
 
         order_item = OrderItem(
             order_id=order.id,
             medicine_id=item.medicine_id,
             quantity=item.quantity,
-            price=inventory.price
+            price=medicine.price
         )
 
         db.add(order_item)
 
-    # 4️⃣ Update total price
+    # 4️⃣ Update total
     order.total_price = total_price
 
-    # 5️⃣ Clear cart items
+    # 5️⃣ Clear cart
     cart.items.clear()
 
     db.commit()

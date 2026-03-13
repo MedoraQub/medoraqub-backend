@@ -8,8 +8,9 @@ class Pharmacy(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False , index = True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     address: Mapped[str] = mapped_column(String(500), nullable=False)
+    phone: Mapped[str] = mapped_column(String(20), nullable=True)
 
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -19,6 +20,7 @@ class Pharmacy(Base, TimestampMixin):
 
     # Relationships
     owner = relationship("User", back_populates="pharmacies")
+
     medicines = relationship(
         "Medicine",
         back_populates="pharmacy",

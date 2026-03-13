@@ -69,3 +69,37 @@ def create_order(db: Session, user_id: int):
     db.refresh(order)
 
     return order
+
+def get_user_orders(db: Session, user_id: int):
+
+    orders = db.query(Order).filter(Order.user_id == user_id).all()
+
+    return orders
+
+
+def get_order_by_id(db: Session, user_id: int, order_id: int):
+
+    order = db.query(Order).filter(
+        Order.id == order_id,
+        Order.user_id == user_id
+    ).first()
+
+    if not order:
+        raise Exception("Order not found")
+
+    return order
+
+
+def update_order_status(db: Session, order_id: int, status: str):
+
+    order = db.query(Order).filter(Order.id == order_id).first()
+
+    if not order:
+        raise Exception("Order not found")
+
+    order.status = status
+
+    db.commit()
+    db.refresh(order)
+
+    return order

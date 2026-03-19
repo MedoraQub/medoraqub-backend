@@ -58,3 +58,17 @@ def search_medicine(
     ).all()
 
     return medicines
+
+# get medicines by category
+@router.get("/category/{category}")
+def get_medicines_by_category(
+    category: str,
+    db: Session = Depends(get_db)
+):
+
+    medicines = db.query(Medicine).filter(
+        Medicine.category.ilike(category)
+    ).all()
+
+    return medicines
+

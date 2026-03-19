@@ -1,53 +1,86 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.modules.auth.dependencies import get_current_user
+from app.modules.orders import service
+from app.modules.orders.service import create_order
+from app.core.security import get_current_user
 
-from . import service
-from .schemas import AddCartItem, UpdateCartItem
-
-router = APIRouter(prefix="/cart", tags=["Cart"])
+router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
-@router.post("/add-item")
-def add_item(
-    data: AddCartItem,
+# =========================
+# CREATE ORDER
+# =========================
+@router.post("/create")
+def create_order_endpoint(
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
-    return service.add_item_to_cart(db, user.id, data.medicine_id, data.quantity)
+    try:
+        order = create_order(db, current_user.id)
+
+        return {
+            "message": "Order created successfully",
+            "order_id": order.id
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/")
-def view_cart(
+# =========================
+# GET USER ORDERS
+# =========================
+@router.get("/my-orders")
+def get_my_orders(
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
-    return service.get_cart(db, user.id)
+    return service.get_user_orders(db, user.id)
 
 
-@router.patch("/update-quantity")
-def update_quantity(
-    data: UpdateCartItem,
+# =========================
+# GET SINGLE ORDER
+# =========================
+@router.get("/{order_id}")
+def get_order(
+    order_id: int,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
-    return service.update_quantity(db, user.id, data.medicine_id, data.quantity)
+    try:
+        return service.get_order_by_id(db, user.id, order_id)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/remove-item/{medicine_id}")
-def remove_item(
-    medicine_id: int,
+# =========================
+# UPDATE ORDER STATUS
+# =========================
+@router.patch("/{order_id}/status")
+def update_order_status(
+    order_id: int,
+    status: str,
+    db: Session = Depends(get_db)
+):
+    try:
+        return service.update_order_status(db, order_id, status)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+# =========================
+# CANCEL ORDER
+# =========================
+@router.delete("/{order_id}/cancel")
+def cancel_order(
+    order_id: int,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
-    return service.remove_item(db, user.id, medicine_id)
-
-
-@router.delete("/clear")
-def clear_cart(
-    db: Session = Depends(get_db),
-    user = Depends(get_current_user)
-):
-    return service.clear_cart(db, user.id)
+    try:
+        return service.cancel_order(db, user.id, order_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    

@@ -54,4 +54,3 @@ class Order(Base, TimestampMixin):
         back_populates="order",
         cascade="all, delete-orphan"
     )
-    

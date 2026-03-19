@@ -44,7 +44,6 @@ class Medicine(Base, TimestampMixin):
     pharmacy = relationship("Pharmacy", back_populates="medicines")
     inventory = relationship(
         "Inventory",
-        back_populates="medicine",
-        uselist=False
+        back_populates="medicine"
     )
     order_items = relationship("OrderItem", back_populates="medicine")

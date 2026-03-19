@@ -27,3 +27,9 @@ class Pharmacy(Base, TimestampMixin):
         cascade="all, delete-orphan"
     )
     
+    inventory = relationship(
+        "Inventory",
+        back_populates="pharmacy",
+        cascade="all, delete-orphan"    
+    )
+    

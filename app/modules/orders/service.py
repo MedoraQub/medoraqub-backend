@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 
 from app.modules.cart.models import Cart
-from app.modules.orders.models import Order, OrderItem
+from app.modules.orders.models import Order
+from app.modules.orderItem.models import OrderItem
 from app.modules.inventory.models import Inventory
 from app.modules.medicines.models import Medicine
 
@@ -19,7 +20,7 @@ def create_order(db: Session, user_id: int):
     # 2️⃣ Create Order
     order = Order(
         user_id=user_id,
-        total_price=0
+        total_price=0,
         status = "pending"
     )
 

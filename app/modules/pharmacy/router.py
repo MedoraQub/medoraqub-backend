@@ -10,6 +10,7 @@ from app.modules.pharmacy.schemas import (
     PharmacyResponse
 )
 
+# Import CRUD functions
 from app.modules.pharmacy.crud import (
     create_pharmacy,
     get_pharmacies,
@@ -18,12 +19,13 @@ from app.modules.pharmacy.crud import (
     delete_pharmacy
 )
 
+# Define the router for pharmacy-related endpoints
 router = APIRouter(
     prefix="/pharmacies",
     tags=["Pharmacies"]
 )
 
-
+# Endpoint to create a new pharmacy
 @router.post("/", response_model=PharmacyResponse)
 def create_new_pharmacy(
     pharmacy: PharmacyCreate,
@@ -32,13 +34,13 @@ def create_new_pharmacy(
     return create_pharmacy(db, pharmacy)
 
 
+# Endpoint to list all pharmacies
 @router.get("/", response_model=List[PharmacyResponse])
-def list_pharmacies(
-    db: Session = Depends(get_db)
-):
+def list_all_pharmacies(db: Session = Depends(get_db)):
     return get_pharmacies(db)
 
 
+# Endpoint to get a single pharmacy by ID
 @router.get("/{pharmacy_id}", response_model=PharmacyResponse)
 def get_single_pharmacy(
     pharmacy_id: int,
@@ -55,6 +57,7 @@ def get_single_pharmacy(
     return pharmacy
 
 
+# Endpoint to update an existing pharmacy
 @router.put("/{pharmacy_id}", response_model=PharmacyResponse)
 def update_existing_pharmacy(
     pharmacy_id: int,
@@ -72,6 +75,7 @@ def update_existing_pharmacy(
     return updated
 
 
+# Endpoint to delete a pharmacy
 @router.delete("/{pharmacy_id}")
 def delete_existing_pharmacy(
     pharmacy_id: int,

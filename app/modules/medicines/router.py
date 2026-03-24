@@ -1,9 +1,20 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.modules.medicines.models import Medicine
-from app.modules.medicines.schemas import MedicineCreate, MedicineResponse
+from app.modules.medicines.schemas import (
+    MedicineCreate,
+    MedicineResponse,
+    MedicineQuery,
+    MedicineListResponse
+)
+from app.modules.medicines.service import (
+    create_medicine,
+    get_all_medicines,
+    get_medicine_by_id,
+    search_medicines,
+    delete_medicine,
+)
 
 router = APIRouter(prefix="/medicines", tags=["Medicines"])
 
@@ -13,62 +24,48 @@ def create_medicine(
     medicine: MedicineCreate,
     db: Session = Depends(get_db)
 ):
-    new_medicine = Medicine(**medicine.model_dump())
+    return create_medicine(db, medicine)
 
-    db.add(new_medicine)
-    db.commit()
-    db.refresh(new_medicine)
+# Get all medicines with pagination/filters
+@router.get("/", response_model=MedicineListResponse)
+def get_medicines(
+    category: str = Query(None),
+    pharmacy_id: int = Query(None),
+    skip: int = Query(0),
+    limit: int = Query(100),
+    db: Session = Depends(get_db)
+):
+    query = MedicineQuery(category=category, pharmacy_id=pharmacy_id, skip=skip, limit=limit)
+    return get_all_medicines(db, query)
 
-    return new_medicine
-
-# Get all medicines
-@router.get("/")
-def get_medicines(db: Session = Depends(get_db)):
-
-    medicines = db.query(Medicine).all()
-
-    return medicines
-
-
-# get single medicine by id
-@router.get("/{medicine_id}")
+# Get single medicine by id (/id/{id})
+@router.get("/id/{medicine_id}", response_model=MedicineResponse)
 def get_medicine(
     medicine_id: int,
     db: Session = Depends(get_db)
 ):
-
-    medicine = db.query(Medicine).filter(
-        Medicine.id == medicine_id
-    ).first()
+    medicine = get_medicine_by_id(db, medicine_id)
 
     if not medicine:
-        raise Exception("Medicine not found")
+        raise HTTPException(status_code=404, detail="Medicine not found")
 
     return medicine
 
-# search medicine by name
-@router.get("/search/{name}")
+# Search medicine by name
+@router.get("/search", response_model=MedicineListResponse)
 def search_medicine(
     name: str,
     db: Session = Depends(get_db)
 ):
+    return search_medicines(db, name)
 
-    medicines = db.query(Medicine).filter(
-        Medicine.name.ilike(f"%{name}%")
-    ).all()
 
-    return medicines
-
-# get medicines by category
-@router.get("/category/{category}")
-def get_medicines_by_category(
-    category: str,
+@router.delete("/{medicine_id}")
+def delete_medicine_handler(
+    medicine_id: int,
     db: Session = Depends(get_db)
 ):
+    delete_medicine(db, medicine_id)
+    return {"message": "Medicine deleted"} 
 
-    medicines = db.query(Medicine).filter(
-        Medicine.category.ilike(category)
-    ).all()
-
-    return medicines
 

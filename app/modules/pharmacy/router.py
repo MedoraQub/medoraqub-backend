@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -7,14 +7,17 @@ from app.db.database import get_db
 from app.modules.pharmacy.schemas import (
     PharmacyCreate,
     PharmacyUpdate,
-    PharmacyResponse
+    PharmacyResponse,
+    PharmacyQuery,
+    PharmacyListResponse
 )
 
 # Import CRUD functions
-from app.modules.pharmacy.crud import (
+from app.modules.pharmacy.service import (
     create_pharmacy,
     get_pharmacies,
     get_pharmacy_by_id,
+    get_low_inventory_pharmacies,
     update_pharmacy,
     delete_pharmacy
 )
@@ -33,12 +36,26 @@ def create_new_pharmacy(
 ):
     return create_pharmacy(db, pharmacy)
 
+# Endpoint to list all pharmacies with filters/pagination
+@router.get("/", response_model=PharmacyListResponse)
+def list_all_pharmacies(
+    name: str = Query(None),
+    skip: int = Query(0),
+    limit: int = Query(100),
+    db: Session = Depends(get_db)
+):
+    query = PharmacyQuery(name=name, skip=skip, limit=limit)
+    return get_pharmacies(db, query)
 
-# Endpoint to list all pharmacies
-@router.get("/", response_model=List[PharmacyResponse])
-def list_all_pharmacies(db: Session = Depends(get_db)):
-    return get_pharmacies(db)
-
+# Endpoint to get pharmacies with low inventory
+@router.get("/low-inventory", response_model=List[PharmacyResponse])
+def list_low_inventory_pharmacies(
+    min_avg_stock: float = Query(10),
+    skip: int = Query(0),
+    limit: int = Query(100),
+    db: Session = Depends(get_db)
+):
+    return get_low_inventory_pharmacies(db, min_avg_stock, skip, limit)
 
 # Endpoint to get a single pharmacy by ID
 @router.get("/{pharmacy_id}", response_model=PharmacyResponse)
@@ -55,7 +72,6 @@ def get_single_pharmacy(
         )
 
     return pharmacy
-
 
 # Endpoint to update an existing pharmacy
 @router.put("/{pharmacy_id}", response_model=PharmacyResponse)
@@ -74,7 +90,6 @@ def update_existing_pharmacy(
 
     return updated
 
-
 # Endpoint to delete a pharmacy
 @router.delete("/{pharmacy_id}")
 def delete_existing_pharmacy(
@@ -90,3 +105,4 @@ def delete_existing_pharmacy(
         )
 
     return {"message": "Pharmacy deleted successfully"}
+

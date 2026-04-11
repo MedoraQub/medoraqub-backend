@@ -1,4 +1,5 @@
-from sqlalchemy import Integer, Float, ForeignKey
+from sqlalchemy import Integer, Numeric, ForeignKey
+from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -27,8 +28,8 @@ class Inventory(Base, TimestampMixin):
         default=0
     )
 
-    price: Mapped[float] = mapped_column(
-        Float,
+    price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
         nullable=False
     )
 

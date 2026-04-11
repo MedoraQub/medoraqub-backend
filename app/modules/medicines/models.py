@@ -1,4 +1,5 @@
-from sqlalchemy import String, Float, ForeignKey, Text
+from sqlalchemy import String, Numeric, ForeignKey, Text
+from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -26,8 +27,8 @@ class Medicine(Base, TimestampMixin):
         index=True
     )
 
-    price: Mapped[float] = mapped_column(
-        Float,
+    price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
         nullable=False
     )
 

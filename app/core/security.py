@@ -27,6 +27,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 # =========================
 
 def hash_password(password: str) -> str:
+    if len(password) > 72:
+        raise ValueError("Password cannot exceed 72 characters (bcrypt limit)")
     return pwd_context.hash(password)
 
 
